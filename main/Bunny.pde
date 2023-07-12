@@ -9,7 +9,7 @@ public class Bunny {
   int energy;
 
   int seeRange;
-
+  int eatRange;
   boolean carrotSeen;
   Carrot targetCarrot;
 
@@ -23,6 +23,7 @@ public class Bunny {
     this.carrotSeen = false;
     this.targetCarrot = null;
     this.seeRange = 200;
+    this.eatRange = 20;
 
     bunny = loadImage("bunny.png");
     bunny.resize(this.bwidth, this.bheight);
@@ -30,10 +31,11 @@ public class Bunny {
 
   void draw() {
     image(this.bunny, this.pos.x - this.bwidth/2, this.pos.y - this.bheight/2);
-    //fill(255, 0, 0);
-    //rect(this.pos.x, this.pos.y, map(energy, 0, 10, 0, this.bwidth), 10);
+    fill(255, 0, 0);
+    rect(this.pos.x, this.pos.y, map(energy, 0, 10, 0, this.bwidth), 10);
     noFill();
-    circle(this.pos.x, this.pos.y, this.seeRange*2);
+    //circle(this.pos.x, this.pos.y, this.seeRange*2);
+    //circle(this.pos.x, this.pos.y, this.eatRange*2);
   }
 
   void update() {
@@ -50,36 +52,41 @@ public class Bunny {
   }
 
   void look(Carrot c) {
-    if (dist(b.pos.x, b.pos.y, c.x, c.y) < b.seeRange ) {
-      b.targetCarrot = c;
-      b.carrotSeen = true;
+    if (dist(this.pos.x, this.pos.y, c.x, c.y) < this.seeRange ) {
+      c.targeted = true;
+      this.targetCarrot = c;
+      this.carrotSeen = true;
       //print("seen");
     } else {
-      b.targetCarrot = null;
-      b.carrotSeen = false;
+      c.targeted = false;
+
     }
   }
 
   void jump() {
 
-    if (energy > 0 && !carrotSeen) {
+    if (this.energy > 0 && !this.carrotSeen) {
       PVector step = PVector.random2D();
       step.setMag(this.jumpForce);
       pos.add(step);
 
-      //this.energy -= 0.1;
-    } else if (energy > 0 && carrotSeen) {
-      pos.add(targetCarrot.pos.sub(this.pos).setMag(this.jumpForce));
+      this.energy -= 1;
+    } else if (this.energy > 0 && this.carrotSeen) {
+      pos.add(this.targetCarrot.pos.sub(this.pos).setMag(this.jumpForce));
+      this.energy -= 1;
+
+      //print("Energy: " + this.energy + "\n Carrot Seen " + this.carrotSeen + "\n Vector: " + this.targetCarrot.pos.sub(this.pos).setMag(this.jumpForce) + "\n");
+
     }
   }
   
   void checkCollision(){
-  Carrot c = targetCarrot;
-  if(targetCarrot != null && dist(b.pos.x, b.pos.y, c.x, c.y) < 20 ){
-    b.energy += 5;
-    c.x = (int) random(80, width - 80);
-    c.y = (int) random(80, height - 80);
-    
+  Carrot c = this.targetCarrot;
+  if(this.targetCarrot != null && dist(this.pos.x, this.pos.y, c.x, c.y) < this.eatRange ){
+    this.energy += 5;
+    c.respawn();
+    //this.targetCarrot = null;
+    print("eat");
   }
 }
 
